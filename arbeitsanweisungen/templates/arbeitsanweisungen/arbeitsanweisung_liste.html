@@ -1,0 +1,736 @@
+{% extends 'base.html' %}
+
+{% block title %}Arbeitsanweisungen Übersicht{% endblock %}
+
+{% block extra_css %}
+<style>
+    .table-hover tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .action-icons a {
+        margin: 0 5px;
+        text-decoration: none;
+        font-size: 1.1rem;
+    }
+    .action-icons a:hover {
+        opacity: 0.7;
+    }
+    .status-icon {
+        font-size: 1.2rem;
+    }
+    .badge-arbeitsplatz {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        white-space: nowrap;
+    }
+    .badge-kategorie {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+    }
+
+    /* Dropdown für Arbeitsplätze-Filter - VERBESSERT */
+    .arbeitsplaetze-filter-dropdown {
+        position: relative;
+    }
+    .arbeitsplaetze-filter-dropdown .dropdown-menu {
+        min-width: 280px;
+        max-height: 320px;
+        overflow-y: auto;
+        padding: 0.5rem 0;
+    }
+    .arbeitsplaetze-filter-dropdown .dropdown-menu li {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    .arbeitsplaetze-filter-dropdown .form-check {
+        padding: 0.6rem 1.25rem;
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    .arbeitsplaetze-filter-dropdown .form-check-input {
+        margin: 0;
+        flex-shrink: 0;
+        width: 1.125rem;
+        height: 1.125rem;
+        cursor: pointer;
+    }
+    .arbeitsplaetze-filter-dropdown .form-check-label {
+        margin: 0;
+        padding: 0;
+        cursor: pointer;
+        flex-grow: 1;
+        line-height: 1.5;
+    }
+    .arbeitsplaetze-filter-dropdown .form-check:hover {
+        background-color: #f8f9fa;
+    }
+    .arbeitsplaetze-filter-dropdown .dropdown-divider {
+        margin: 0.5rem 0;
+    }
+    .arbeitsplaetze-selected-badge {
+        display: inline-block;
+        margin-left: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Header im Dropdown */
+    .arbeitsplaetze-filter-dropdown .dropdown-menu .px-3 {
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+
+    /* Tabelle - Overflow anpassen */
+    .table-responsive {
+        overflow: visible !important;  /* GEÄNDERT: von auto/scroll zu visible */
+    }
+
+    /* Fallback für horizontales Scrollen nur bei kleinen Bildschirmen */
+    @media (max-width: 768px) {
+        .table-responsive {
+            overflow-x: auto !important;
+            overflow-y: visible !important;
+        }
+    }
+
+    /* Card Body - Overflow anpassen */
+    .card-body {
+        overflow: visible !important;
+    }
+
+    /* Tabelle selbst */
+    .table {
+        overflow: visible;
+    }
+
+    tbody {
+        overflow: visible;
+    }
+
+    tr {
+        overflow: visible;
+    }
+
+    td {
+        overflow: visible;
+    }
+
+    /* Dropdown für Arbeitsplätze in Tabelle - VERBESSERT */
+    .arbeitsplaetze-dropdown {
+        position: relative;
+        display: inline-block;
+        z-index: 10;  /* Höher als Tabelle */
+    }
+
+    .arbeitsplaetze-dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #fff;
+        min-width: 220px;
+        max-height: 300px;  /* ERHÖHT für mehr Platz */
+        overflow-y: auto;
+        box-shadow: 0px -8px 20px 0px rgba(0,0,0,0.2);
+        z-index: 9999;  /* SEHR HOCH für Sichtbarkeit über allem */
+        border-radius: 6px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: calc(100% + 8px);
+        white-space: normal;
+    }
+
+    .arbeitsplaetze-dropdown:hover .arbeitsplaetze-dropdown-content {
+        display: block;
+    }
+
+    .arbeitsplaetze-badge-compact {
+        cursor: help;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .arbeitsplaetze-badge-compact:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Badge im Dropdown */
+    .arbeitsplaetze-dropdown-content .badge-arbeitsplatz {
+        display: block;
+        margin-bottom: 4px;
+        text-align: left;
+        width: 100%;
+    }
+
+    .arbeitsplaetze-dropdown-content .badge-arbeitsplatz:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Scrollbar Styling für Dropdown */
+    .arbeitsplaetze-dropdown-content::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .arbeitsplaetze-dropdown-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .arbeitsplaetze-dropdown-content::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+    }
+
+    .arbeitsplaetze-dropdown-content::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    /* Andere Badge-Styles bleiben gleich */
+    .badge-arbeitsplatz {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        white-space: nowrap;
+    }
+
+    .badge-kategorie {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+    }
+
+    .table-hover tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .action-icons a {
+        margin: 0 5px;
+        text-decoration: none;
+        font-size: 1.1rem;
+    }
+
+    .action-icons a:hover {
+        opacity: 0.7;
+    }
+
+    .status-icon {
+        font-size: 1.2rem;
+    }
+
+    /* Dropdown für Arbeitsplätze-Filter */
+    .arbeitsplaetze-filter-dropdown {
+        position: relative;
+    }
+
+    .arbeitsplaetze-filter-dropdown .dropdown-menu {
+        min-width: 280px;
+        max-height: 320px;
+        overflow-y: auto;
+        padding: 0.5rem 0;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    }
+
+    .arbeitsplaetze-filter-dropdown .dropdown-menu li {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .arbeitsplaetze-filter-dropdown .form-check {
+        padding: 0.6rem 1.25rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        border: none;
+        background: transparent;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .arbeitsplaetze-filter-dropdown .form-check-input {
+        position: static;
+        margin: 0 !important;
+        flex-shrink: 0;
+        width: 1.125rem;
+        height: 1.125rem;
+        cursor: pointer;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        background-color: #fff;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    .arbeitsplaetze-filter-dropdown .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 100% 100%;
+    }
+
+    .arbeitsplaetze-filter-dropdown .form-check-label {
+        margin: 0;
+        padding: 0;
+        cursor: pointer;
+        flex-grow: 1;
+        line-height: 1.5;
+        user-select: none;
+    }
+
+    .arbeitsplaetze-filter-dropdown .form-check:hover {
+        background-color: #f8f9fa;
+    }
+
+    .arbeitsplaetze-filter-dropdown .dropdown-divider {
+        margin: 0.5rem 0;
+        border-top: 1px solid rgba(0,0,0,.1);
+    }
+
+    .arbeitsplaetze-selected-badge {
+        display: inline-block;
+        margin-left: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .arbeitsplaetze-filter-dropdown .dropdown-menu .px-3 {
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="display-4"><i class="bi bi-file-text text-primary"></i>Dokumentenmanagement</h1>
+            <p class="lead text-muted">Dokumenten Management / Verwaltung</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <!-- Dropdown für Export/Import -->
+            {% if user.is_authenticated %}
+                <div class="btn-group me-2" role="group">
+                    <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="bi bi-download"></i> Export / Import
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'arbeitsanweisung_export_all' %}">
+                                <i class="bi bi-download"></i> Alle exportieren
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'arbeitsanweisung_import' %}">
+                                <i class="bi bi-upload"></i> Importieren
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            <a href="{% url 'arbeitsanweisung_erstellen' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle"></i> Neue Arbeitsanweisung
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form method="get" id="filterForm">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label"><i class="bi bi-search"></i> Suche</label>
+                    {{ form.suchbegriff }}
+                </div>
+
+                <!-- Arbeitsplätze als Dropdown mit Checkboxen -->
+                <div class="col-md-3">
+                <label class="form-label"><i class="bi bi-building"></i> Arbeitsplatz</label>
+                {{ form.arbeitsplatz }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><i class="bi bi-tag"></i> Kategorie</label>
+                    {{ form.kategorie }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><i class="bi bi-sort-down"></i> Sortierung</label>
+                    {{ form.sortierung }}
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel"></i> Filtern
+                    </button>
+                    <a href="{% url 'arbeitsanweisung_liste' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter zurücksetzen
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Ergebnis-Info -->
+    {% if arbeitsanweisungen %}
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-info d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="bi bi-info-circle"></i>
+                        <strong>{{ arbeitsanweisungen.paginator.count }}</strong> Arbeitsanweisung(en) gefunden
+                    </span>
+                    <span class="text-muted">
+                        Seite {{ arbeitsanweisungen.number }} von {{ arbeitsanweisungen.paginator.num_pages }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabelle -->
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 8%;" class="text-center">
+                                    <i class="bi bi-hash"></i> Nummer
+                                </th>
+                                <th style="width: 22%;">
+                                    <i class="bi bi-card-text"></i> Name
+                                </th>
+                                <th style="width: 12%;" class="text-center">
+                                    <i class="bi bi-tag"></i> Kategorie
+                                </th>
+                                <th style="width: 12%;" class="text-center">
+                                    <i class="bi bi-building"></i> Arbeitsplatz
+                                </th>
+                                <th style="width: 18%;">
+                                    <i class="bi bi-file-earmark"></i> Datei
+                                </th>
+                                <th style="width: 13%;" class="text-center">
+                                    <i class="bi bi-calendar"></i> Erstellt am
+                                </th>
+                                <th style="width: 15%;" class="text-center">
+                                    <i class="bi bi-gear"></i> Aktionen
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for anweisung in arbeitsanweisungen %}
+                                <tr onclick="window.location='{% url 'arbeitsanweisung_detail' anweisung.nummer %}';">
+                                    <td class="text-center">
+                                        <span class="badge bg-primary fs-6">{{ anweisung.nummer }}</span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ anweisung.name }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-{{ anweisung.kategorie_badge_farbe }} badge-kategorie">
+                                            <i class="{{ anweisung.kategorie_icon }}"></i>
+                                            {{ anweisung.get_kategorie_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center" onclick="event.stopPropagation();">
+                                        {% if anweisung.arbeitsplaetze %}
+                                            {% if anweisung.arbeitsplaetze|length == 1 %}
+                                                <!-- Nur ein Arbeitsplatz: direkt anzeigen -->
+                                                <span class="badge bg-secondary badge-arbeitsplatz">
+                                                    {{ anweisung.get_arbeitsplaetze_badges.0 }}
+                                                </span>
+                                            {% else %}
+                                                <!-- Mehrere Arbeitsplätze: Dropdown -->
+                                                <div class="arbeitsplaetze-dropdown">
+                                                    <span class="badge bg-info arbeitsplaetze-badge-compact">
+                                                        <i class="bi bi-buildings"></i>
+                                                        {{ anweisung.arbeitsplaetze|length }} Arbeitsplätze
+                                                        <i class="bi bi-chevron-down"></i>
+                                                    </span>
+                                                    <div class="arbeitsplaetze-dropdown-content">
+                                                        {% for arbeitsplatz in anweisung.get_arbeitsplaetze_badges %}
+                                                            <span class="badge bg-secondary badge-arbeitsplatz d-block mb-1">
+                                                                {{ arbeitsplatz }}
+                                                            </span>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted small">-</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if anweisung.datei_pfad %}
+                                            {% if anweisung.datei_existiert %}
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-file-earmark-check text-success status-icon me-2"></i>
+                                                    <small class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ anweisung.dateiname }}">
+                                                        {{ anweisung.dateiname }}
+                                                    </small>
+                                                </div>
+                                            {% else %}
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-file-earmark-x text-danger status-icon me-2"></i>
+                                                    <small class="text-danger">Datei nicht gefunden</small>
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted small">
+                                                <i class="bi bi-file-earmark-minus"></i> Keine Datei
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <small>{{ anweisung.erstellt_am|date:"d.m.Y" }}</small>
+                                    </td>
+                                    <td class="text-center action-icons" onclick="event.stopPropagation();">
+                                    <!-- Vorschau (für alle) -->
+                                    {% if anweisung.datei_pfad and anweisung.datei_existiert %}
+                                        <a href="#"
+                                           onclick="showFilePreview('{% url 'arbeitsanweisung_datei_preview' anweisung.nummer %}', '{{ anweisung.dateiname }}'); return false;"
+                                           class="text-primary"
+                                           title="Vorschau anzeigen">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted" title="Keine Datei verfügbar">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </span>
+                                    {% endif %}
+
+                                    <!-- Download (für alle) -->
+                                    {% if anweisung.datei_pfad and anweisung.datei_existiert %}
+                                        <a href="{% url 'arbeitsanweisung_datei_download' anweisung.nummer %}"
+                                           class="text-success"
+                                           title="Datei herunterladen">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted" title="Keine Datei verfügbar">
+                                            <i class="bi bi-download"></i>
+                                        </span>
+                                    {% endif %}
+
+                                    <!-- Detailansicht (nur eingeloggt) -->
+                                    {% if user.is_authenticated %}
+                                        <a href="{% url 'arbeitsanweisung_detail' anweisung.nummer %}"
+                                           class="text-info"
+                                           title="Details anzeigen">
+                                            <i class="bi bi-info-circle-fill"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    <!-- Bearbeiten (nur eingeloggt) -->
+                                    {% if user.is_authenticated %}
+                                        <a href="{% url 'arbeitsanweisung_bearbeiten' anweisung.nummer %}"
+                                           class="text-warning"
+                                           title="Bearbeiten">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    <!-- Löschen (nur eingeloggt) -->
+                                    {% if user.is_authenticated %}
+                                        <a href="{% url 'arbeitsanweisung_loeschen' anweisung.nummer %}"
+                                           class="text-danger"
+                                           title="Löschen">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </a>
+                                    {% endif %}
+                                </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+            <!-- Modal für Datei-Vorschau -->
+        <div class="modal fade" id="filePreviewModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-eye"></i> Datei-Vorschau
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="modalFileContent" style="min-height: 600px;">
+                        <!-- Inhalt wird per JavaScript geladen -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                        <a href="#" id="modalDownloadBtn" class="btn btn-primary" download>
+                            <i class="bi bi-download"></i> Herunterladen
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        <!-- Pagination (bleibt gleich) -->
+        {% if arbeitsanweisungen.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if arbeitsanweisungen.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Erste Seite">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ arbeitsanweisungen.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Vorherige Seite">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                        </li>
+                    {% endif %}
+
+                    {% for num in arbeitsanweisungen.paginator.page_range %}
+                        {% if arbeitsanweisungen.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > arbeitsanweisungen.number|add:'-3' and num < arbeitsanweisungen.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if arbeitsanweisungen.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ arbeitsanweisungen.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Nächste Seite">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ arbeitsanweisungen.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Letzte Seite">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <div class="text-center text-muted small mt-2">
+                Zeige Eintrag {{ arbeitsanweisungen.start_index }} bis {{ arbeitsanweisungen.end_index }} von {{ arbeitsanweisungen.paginator.count }}
+            </div>
+        {% endif %}
+
+    {% else %}
+        <div class="alert alert-info text-center py-5" role="alert">
+            <i class="bi bi-info-circle display-4 d-block mb-3"></i>
+            <h4>Keine Arbeitsanweisungen gefunden</h4>
+            <p class="mb-4">Es wurden keine Arbeitsanweisungen gefunden, die Ihren Suchkriterien entsprechen.</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{% url 'arbeitsanweisung_erstellen' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Erste Arbeitsanweisung erstellen
+                </a>
+                <a href="{% url 'arbeitsanweisung_liste' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Filter zurücksetzen
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Counter für ausgewählte Arbeitsplätze aktualisieren
+    function updateArbeitsplaetzeCounter() {
+        const checkboxes = document.querySelectorAll('input[name="arbeitsplaetze"]:checked');
+        const counter = document.getElementById('arbeitsplaetzeCounter');
+        const count = checkboxes.length;
+
+        if (count > 0) {
+            counter.textContent = count;
+            counter.style.display = 'inline-block';
+        } else {
+            counter.style.display = 'none';
+        }
+    }
+
+    // Alle Arbeitsplätze abwählen
+    function clearArbeitsplaetze() {
+        const checkboxes = document.querySelectorAll('input[name="arbeitsplaetze"]');
+        checkboxes.forEach(cb => cb.checked = false);
+        updateArbeitsplaetzeCounter();
+    }
+
+    // Event Listener für Checkboxen
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('input[name="arbeitsplaetze"]');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateArbeitsplaetzeCounter);
+        });
+
+        // Initial Counter aktualisieren
+        updateArbeitsplaetzeCounter();
+    });
+
+
+    function showFilePreview(url, filename) {
+    const modal = new bootstrap.Modal(document.getElementById('filePreviewModal'));
+    const content = document.getElementById('modalFileContent');
+    const downloadBtn = document.getElementById('modalDownloadBtn');
+
+    downloadBtn.href = url;
+
+    const ext = filename.toLowerCase().split('.').pop();
+
+    if (ext === 'pdf') {
+        content.innerHTML = `<iframe src="${url}" width="100%" height="700px" style="border: none;"></iframe>`;
+    } else if (['jpg', 'jpeg', 'png'].includes(ext)) {
+        content.innerHTML = `<div class="text-center"><img src="${url}" class="img-fluid" style="max-height: 700px;"></div>`;
+    } else if (ext === 'txt') {
+        content.innerHTML = `<iframe src="${url}" width="100%" height="700px" style="border: 1px solid #ddd;"></iframe>`;
+    } else {
+        content.innerHTML = `
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle display-4 mb-3"></i>
+                <p>Diese Datei kann nicht direkt im Browser angezeigt werden.</p>
+                <p><strong>${filename}</strong></p>
+                <a href="${url}" class="btn btn-primary" download>
+                    <i class="bi bi-download"></i> Datei herunterladen
+                </a>
+            </div>`;
+    }
+
+    modal.show();
+}
+</script>
+{% endblock %}

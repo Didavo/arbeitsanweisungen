@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'arbeitsanweisung_liste' %}">Arbeitsanweisungen</a></li>
+            <li class="breadcrumb-item active">Import</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5">
+                <i class="bi bi-upload text-primary"></i>
+                {{ title }}
+            </h1>
+            <p class="lead text-muted">Importieren Sie Arbeitsanweisungen aus einem Backup-Archiv</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Import Form -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-upload"></i> ZIP-Archiv hochladen</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <label for="{{ form.zip_datei.id_for_label }}" class="form-label">
+                                <i class="bi bi-file-zip"></i> {{ form.zip_datei.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.zip_datei }}
+                            {% if form.zip_datei.help_text %}
+                                <div class="form-text">{{ form.zip_datei.help_text }}</div>
+                            {% endif %}
+                            {% if form.zip_datei.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.zip_datei.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.ueberschreiben }}
+                                <label class="form-check-label" for="{{ form.ueberschreiben.id_for_label }}">
+                                    {{ form.ueberschreiben.label }}
+                                </label>
+                                {% if form.ueberschreiben.help_text %}
+                                    <div class="form-text">{{ form.ueberschreiben.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Hinweis:</strong> Der Import kann je nach Größe des Archives einige Minuten dauern.
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'arbeitsanweisung_liste' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Abbrechen
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-upload"></i> Importieren
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar mit Informationen -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm bg-light mb-3">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-info-circle"></i> Über den Import</h6>
+                    <ul class="small mb-0">
+                        <li>Nur ZIP-Archive sind erlaubt</li>
+                        <li>Maximale Größe: 100 MB</li>
+                        <li>Nur Exporte dieser Anwendung können importiert werden</li>
+                        <li>Archive müssen die Datei <code>arbeitsanweisungen.json</code> enthalten</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Vorsicht</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        <strong>Überschreiben aktiviert:</strong> Bestehende Arbeitsanweisungen mit gleicher Nummer werden ersetzt.
+                    </p>
+                    <p class="small mb-0">
+                        <strong>Überschreiben deaktiviert:</strong> Bestehende Arbeitsanweisungen werden übersprungen.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-download"></i> Backup erstellen</h6>
+                    <p class="small">Bevor Sie importieren, sollten Sie ein Backup erstellen.</p>
+                    <a href="{% url 'arbeitsanweisung_export_all' %}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-download"></i> Jetzt Backup erstellen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

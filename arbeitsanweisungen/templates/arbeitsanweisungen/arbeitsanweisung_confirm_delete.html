@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Arbeitsanweisung löschen - {{ arbeitsanweisung.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'arbeitsanweisung_liste' %}">Arbeitsanweisungen</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'arbeitsanweisung_detail' arbeitsanweisung.nummer %}">{{ arbeitsanweisung.nummer }}</a></li>
+            <li class="breadcrumb-item active">Löschen</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Arbeitsanweisung löschen</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Achtung!</strong> Diese Aktion kann nicht rückgängig gemacht werden.
+                    </div>
+
+                    <p>Möchten Sie die folgende Arbeitsanweisung wirklich löschen?</p>
+
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <span class="badge bg-primary">{{ arbeitsanweisung.nummer }}</span>
+                                {{ arbeitsanweisung.name }}
+                            </h6>
+                            <p class="card-text small mb-1">
+                                <strong>Arbeitsplatz:</strong> {{ arbeitsanweisung.name }}
+                            </p>
+                            {% if arbeitsanweisung.datei_pfad %}
+                                <p class="card-text small mb-0">
+                                    <strong>Datei:</strong> <code>{{ arbeitsanweisung.datei_pfad }}</code>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'arbeitsanweisung_detail' arbeitsanweisung.nummer %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Abbrechen
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Ja, löschen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

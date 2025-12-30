@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Arbeitsanweisung {{ arbeitsanweisung.nummer }} - {{ arbeitsanweisung.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'arbeitsanweisung_liste' %}">Arbeitsanweisungen</a></li>
+            <li class="breadcrumb-item active">{{ arbeitsanweisung.nummer }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5">
+                <span class="badge bg-primary me-2">{{ arbeitsanweisung.nummer }}</span>
+                {{ arbeitsanweisung.name }}
+            </h1>
+        </div>
+
+    </div>
+
+    <!-- Details Card -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th style="width: 30%;"><i class="bi bi-hash"></i> Nummer:</th>
+                                <td><strong>{{ arbeitsanweisung.nummer }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th><i class="bi bi-card-text"></i> Name:</th>
+                                <td>{{ arbeitsanweisung.name }}</td>
+                            </tr>
+                            <tr>
+                                <th><i class="bi bi-building"></i> Arbeitsplätze:</th>
+                                <td>
+                                    {% if arbeitsanweisung.arbeitsplaetze %}
+                                        {% for arbeitsplatz in arbeitsanweisung.get_arbeitsplaetze_badges %}
+                                            <span class="badge bg-secondary badge-arbeitsplatz me-1 mb-1">
+                                                {{ arbeitsplatz }}
+                                            </span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">Keine Arbeitsplätze zugewiesen</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th><i class="bi bi-tag"></i> Kategorie:</th>
+                                <td>
+                                    <span class="badge bg-{{ arbeitsanweisung.kategorie_badge_farbe }} badge-kategorie">
+                                        <i class="{{ arbeitsanweisung.kategorie_icon }}"></i>
+                                        {{ arbeitsanweisung.get_kategorie_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><i class="bi bi-file-earmark"></i> Datei:</th>
+                                <td>
+                                    {% if arbeitsanweisung.datei_pfad %}
+                                        {% if arbeitsanweisung.datei_existiert %}
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-paperclip text-success"></i>
+                                                <code>{{ arbeitsanweisung.dateiname }}</code>
+                                            </div>
+                                        {% else %}
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-exclamation-triangle text-danger"></i>
+                                                <span class="text-danger">Datei nicht gefunden</span>
+                                                <code class="text-muted">{{ arbeitsanweisung.dateiname }}</code>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">Keine Datei vorhanden</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th><i class="bi bi-calendar-plus"></i> Erstellt am:</th>
+                                <td>{{ arbeitsanweisung.erstellt_am|date:"d.m.Y H:i" }} Uhr</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="bi bi-lightning"></i> Aktionen</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if arbeitsanweisung.datei_pfad and arbeitsanweisung.datei_existiert %}
+                            <a href="{% url 'arbeitsanweisung_datei_download' arbeitsanweisung.nummer %}" class="btn btn-success">
+                                <i class="bi bi-download"></i> Datei herunterladen
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'arbeitsanweisung_bearbeiten' arbeitsanweisung.nummer %}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Bearbeiten
+                        </a>
+                        <a href="{% url 'arbeitsanweisung_loeschen' arbeitsanweisung.nummer %}" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Löschen
+                        </a>
+                        <a href="{% url 'arbeitsanweisung_liste' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+{% endblock %}

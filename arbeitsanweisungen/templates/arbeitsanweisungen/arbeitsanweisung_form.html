@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'arbeitsanweisung_liste' %}">Arbeitsanweisungen</a></li>
+            {% if arbeitsanweisung %}
+                <li class="breadcrumb-item"><a href="{% url 'arbeitsanweisung_detail' arbeitsanweisung.nummer %}">{{ arbeitsanweisung.nummer }}</a></li>
+                <li class="breadcrumb-item active">Bearbeiten</li>
+            {% else %}
+                <li class="breadcrumb-item active">Neu erstellen</li>
+            {% endif %}
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5">
+                <i class="bi bi-{% if arbeitsanweisung %}pencil{% else %}plus-circle{% endif %} text-primary"></i>
+                {{ title }}
+            </h1>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Name -->
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <i class="bi bi-card-text"></i> {{ form.name.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Kategorie -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.kategorie.id_for_label }}" class="form-label">
+                                    <i class="bi bi-tag"></i> {{ form.kategorie.label }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.kategorie }}
+                                {% if form.kategorie.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.kategorie.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Arbeitsplätze als Checkboxen -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-building"></i> Arbeitsplätze
+                                <span class="text-danger">*</span>
+                            </label>
+                            {% if form.arbeitsplaetze.help_text %}
+                                <div class="form-text mb-2">{{ form.arbeitsplaetze.help_text }}</div>
+                            {% endif %}
+                            <div class="card bg-light p-3">
+                                <div class="row">
+                                    {% for choice in form.arbeitsplaetze %}
+                                        <div class="col-md-4 col-sm-6 mb-2">
+                                            <div class="form-check">
+                                                {{ choice.tag }}
+                                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                    {{ choice.choice_label }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if form.arbeitsplaetze.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.arbeitsplaetze.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Aktuelle Datei anzeigen (nur beim Bearbeiten) -->
+                        {% if arbeitsanweisung %}
+                            {% if arbeitsanweisung.datei_pfad %}
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-file-earmark-check"></i> Aktuelle Datei
+                                </label>
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="bi bi-paperclip"></i>
+                                                <strong>{{ arbeitsanweisung.dateiname }}</strong>
+                                                {% if not arbeitsanweisung.datei_existiert %}
+                                                    <span class="badge bg-danger ms-2">Datei nicht gefunden</span>
+                                                {% endif %}
+                                            </div>
+                                            {% if arbeitsanweisung.datei_existiert %}
+                                                <a href="{% url 'arbeitsanweisung_datei_download' arbeitsanweisung.nummer %}"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-download"></i> Download
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Option zum Löschen der Datei -->
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    {{ form.datei_loeschen }}
+                                    <label class="form-check-label" for="{{ form.datei_loeschen.id_for_label }}">
+                                        {{ form.datei_loeschen.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- Datei-Upload -->
+                        <div class="mb-3">
+                            <label for="{{ form.datei.id_for_label }}" class="form-label">
+                                <i class="bi bi-cloud-upload"></i> {{ form.datei.label }}
+                                <span class="text-muted">(optional)</span>
+                            </label>
+                            {{ form.datei }}
+                            {% if form.datei.help_text %}
+                                <div class="form-text">{{ form.datei.help_text }}</div>
+                            {% endif %}
+                            {% if form.datei.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.datei.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Nummer -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nummer.id_for_label }}" class="form-label">
+                                    <i class="bi bi-hash"></i> {{ form.nummer.label }}
+                                    {% if not arbeitsanweisung %}
+                                        <span class="text-muted">(optional)</span>
+                                    {% endif %}
+                                </label>
+                                {{ form.nummer }}
+                                {% if form.nummer.help_text %}
+                                    <div class="form-text">{{ form.nummer.help_text }}</div>
+                                {% endif %}
+                                {% if form.nummer.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.nummer.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% if arbeitsanweisung %}{% url 'arbeitsanweisung_detail' arbeitsanweisung.nummer %}{% else %}{% url 'arbeitsanweisung_liste' %}{% endif %}"
+                               class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Abbrechen
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                {% if arbeitsanweisung %}Aktualisieren{% else %}Erstellen{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar mit Hinweisen -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm bg-light">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-info-circle"></i> Hinweise</h6>
+                    <ul class="small mb-0">
+                        <li>Felder mit <span class="text-danger">*</span> sind Pflichtfelder</li>
+                        {% if not arbeitsanweisung %}
+                            <li>Die Nummer wird automatisch in 10er-Schritten generiert, wenn Sie keine angeben</li>
+                        {% endif %}
+                        <li>Erlaubte Dateitypen: PDF, Word, Excel, Bilder</li>
+                        <li>Maximale Dateigröße: 10 MB</li>
+                        <li>Die Datei wird im Verzeichnis <code>/data</code> gespeichert</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
