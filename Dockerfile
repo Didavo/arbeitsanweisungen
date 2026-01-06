@@ -25,17 +25,11 @@ RUN pip install --upgrade pip && \
 # Projektdateien kopieren
 COPY . /app/
 
-# Data-Verzeichnis erstellen
-RUN mkdir -p /app/data && \
-    chmod 755 /app/data
+# data/staticfiles/media - Verzeichnisse erstellen
+RUN mkdir -p /app/data /app/staticfiles /app/media
 
-# Static Files Verzeichnis erstellen
-RUN mkdir -p /app/staticfiles && \
-    chmod 755 /app/staticfiles
-
-# Media Files Verzeichnis erstellen
-RUN mkdir -p /app/media && \
-    chmod 755 /app/media
+# Static files bereits beim Build sammeln
+RUN python manage.py collectstatic --noinput --clear
 
 # Entrypoint-Script ausführbar machen
 COPY entrypoint.sh /app/

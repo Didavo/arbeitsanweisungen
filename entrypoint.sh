@@ -31,10 +31,6 @@ echo "Führe Migrationen aus..."
 python manage.py migrate --noinput
 echo "✓ Migrationen abgeschlossen"
 
-# Static Files sammeln
-echo "Sammle static files..."
-python manage.py collectstatic --noinput --clear
-echo "✓ Static files gesammelt"
 
 # Superuser erstellen (mit Python-Script)
 echo "Prüfe Superuser..."
