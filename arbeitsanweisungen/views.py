@@ -4,6 +4,7 @@ from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404, HttpResponse
 import os
 import zipfile
@@ -40,6 +41,7 @@ def arbeitsanweisung_liste(request):
     return render(request, 'arbeitsanweisungen/arbeitsanweisung_liste.html', context)
 
 
+@login_required
 def arbeitsanweisung_detail(request, nummer):
     """
     Detailansicht einer einzelnen Arbeitsanweisung
@@ -52,6 +54,7 @@ def arbeitsanweisung_detail(request, nummer):
     return render(request, 'arbeitsanweisungen/arbeitsanweisung_detail.html', context)
 
 
+@login_required
 def arbeitsanweisung_erstellen(request):
     """
     Erstellen einer neuen Arbeitsanweisung
@@ -72,6 +75,7 @@ def arbeitsanweisung_erstellen(request):
     return render(request, 'arbeitsanweisungen/arbeitsanweisung_form.html', context)
 
 
+@login_required
 def arbeitsanweisung_bearbeiten(request, nummer):
     """
     Bearbeiten einer bestehenden Arbeitsanweisung
@@ -95,6 +99,7 @@ def arbeitsanweisung_bearbeiten(request, nummer):
     return render(request, 'arbeitsanweisungen/arbeitsanweisung_form.html', context)
 
 
+@login_required
 def arbeitsanweisung_loeschen(request, nummer):
     """
     Löschen einer Arbeitsanweisung
@@ -149,6 +154,7 @@ def arbeitsanweisung_datei_preview(request, nummer):
         return response
 
 
+@login_required
 def arbeitsanweisung_export_all(request):
     """
     Exportiert alle Arbeitsanweisungen als ZIP-Archiv
@@ -245,6 +251,7 @@ def arbeitsanweisung_export_all(request):
             shutil.rmtree(temp_dir)
 
 
+@login_required
 def arbeitsanweisung_import(request):
     """
     Importiert Arbeitsanweisungen aus einem ZIP-Archiv

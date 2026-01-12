@@ -416,9 +416,6 @@
                                 <th style="width: 12%;" class="text-center">
                                     <i class="bi bi-building"></i> Arbeitsplatz
                                 </th>
-                                <th style="width: 18%;">
-                                    <i class="bi bi-file-earmark"></i> Datei
-                                </th>
                                 <th style="width: 13%;" class="text-center">
                                     <i class="bi bi-calendar"></i> Erstellt am
                                 </th>
@@ -431,7 +428,7 @@
                             {% for anweisung in arbeitsanweisungen %}
                                 <tr onclick="window.location='{% url 'arbeitsanweisung_detail' anweisung.nummer %}';">
                                     <td class="text-center">
-                                        <span class="badge bg-primary fs-6">{{ anweisung.nummer }}</span>
+                                        <span class="badge bg-{{ anweisung.kategorie_badge_farbe }} fs-6">{{ anweisung.nummer }}</span>
                                     </td>
                                     <td>
                                         <strong>{{ anweisung.name }}</strong>
@@ -468,28 +465,6 @@
                                             {% endif %}
                                         {% else %}
                                             <span class="text-muted small">-</span>
-                                        {% endif %}
-                                    </td>
-
-                                    <td>
-                                        {% if anweisung.datei_pfad %}
-                                            {% if anweisung.datei_existiert %}
-                                                <div class="d-flex align-items-center">
-                                                    <i class="bi bi-file-earmark-check text-success status-icon me-2"></i>
-                                                    <small class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ anweisung.dateiname }}">
-                                                        {{ anweisung.dateiname }}
-                                                    </small>
-                                                </div>
-                                            {% else %}
-                                                <div class="d-flex align-items-center">
-                                                    <i class="bi bi-file-earmark-x text-danger status-icon me-2"></i>
-                                                    <small class="text-danger">Datei nicht gefunden</small>
-                                                </div>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-muted small">
-                                                <i class="bi bi-file-earmark-minus"></i> Keine Datei
-                                            </span>
                                         {% endif %}
                                     </td>
                                     <td class="text-center">

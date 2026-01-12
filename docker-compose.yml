@@ -5,7 +5,7 @@ services:
     image: postgres:15-alpine
     container_name: arbeitsanweisungen_db
     volumes:
-      - ./volumes/postgres:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=arbeitsanweisungen_db
       - POSTGRES_USER=postgres
@@ -24,17 +24,16 @@ services:
     container_name: arbeitsanweisungen_web
     command: /app/entrypoint.sh
     volumes:
-      - .:/app
-      - ./volumes/staticfiles:/app/staticfiles
-      - ./volumes/media:/app/media
-      - ./volumes/data:/app/data
+      - static_files:/app/staticfiles
+      - media_files:/app/media
+      - app_data:/app/data
     expose:
       - 8000
     environment:
       - DEBUG=False
       - SECRET_KEY=dein-super-geheimer-schluessel-1995-lukas-fuessbach
       - DATABASE_URL=postgresql://postgres:postgres_password_123@db:5432/arbeitsanweisungen_db
-      - ALLOWED_HOSTS=localhost,127.0.0.1,your-domain.com
+      - ALLOWED_HOSTS=localhost,127.0.0.1,
       - CSRF_TRUSTED_ORIGINS=http://localhost,http://127.0.0.1
     depends_on:
       db:
@@ -49,9 +48,9 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./volumes/staticfiles:/app/staticfiles:ro
-      - ./volumes/media:/app/media:ro
-      - ./volumes/data:/app/data:ro
+      - static_files:/app/staticfiles:ro
+      - media_files:/app/media:ro
+      - app_data:/app/data:ro
     ports:
       - "80:80"
       - "443:443"
@@ -64,3 +63,13 @@ services:
 networks:
   app_network:
     driver: bridge
+
+volumes:
+  postgres_data:
+    name: arbeitsanweisungen_postgres_data
+  static_files:
+    name: arbeitsanweisungen_static_files
+  media_files:
+    name: arbeitsanweisungen_media_files
+  app_data:
+    name: arbeitsanweisungen_app_data
