@@ -1,4 +1,4 @@
-ALLOWED_HOSTS/CSRF_TRUSTED_ORIGINS - konfigurieren tings/docker-compose
+﻿ALLOWED_HOSTS/CSRF_TRUSTED_ORIGINS - konfigurieren tings/docker-compose
 
 
 # Docker Container bauen und starten
@@ -11,3 +11,22 @@ docker-compose logs -f
 
 
 https://github.com/Didavo/arbeitsanweisungen
+
+
+IP-Adresse: 192.168.0.12
+
+Arbeitsplätze nach Liste:
+Kalkulation, Fertigung, Instanthaltung, Kanten, Lager / Versand / Wareneingang, Lasern / Stanzen / Entgraten, Montage / Zerspanen,
+Qualitätssicherung, Schweißen, Sonst. Handarbeitsplätze, Zerspanen / Sägen, Programmieren, Konstruktion
+
+Kategorien:
++ Stellenbeschreibung, Formblätter
+
+
+Login-Required - Beschränkungen der URL überführen
+Farbe der Nummern an Kategorie anpassen
+Revision / Nummer hinzufügen
+Spalte des Namens vergrößern
+
+Kategorien in Reiter überführen
+- Suche/Filter nach Kategorie entfernen, da immer alles Kategorien zurückgegeben werden sollen
