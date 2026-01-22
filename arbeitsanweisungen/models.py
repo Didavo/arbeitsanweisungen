@@ -12,16 +12,17 @@ class Arbeitsanweisung(models.Model):
     # Vordefinierte Arbeitsplätze
     ARBEITSPLATZ_CHOICES = [
 
-        ('abkanten', 'Abkanten'),
-        ('arbeitsvorbereitung', 'Arbeitsvorbereitung'),
-        ('konstruktion', 'Konstruktion'),
-        ('Lasern_stanzen', 'Lasern & Stanzen'),
-        ('montage', 'Montage'),
-        ('programmieren', 'Programmieren'),
+        ('kalkulation', 'Kalkulation'),
+        ('fertigung', 'Fertigung'),
+        ('lager_versand_wareneingang', 'Lager / Versand / Wareneingang'),
+        ('lasern_stanzen_entgraten', 'Lasern / Stanzen / Entgraten'),
+        ('montage_zerspanen', 'Montage / Zerspanen'),
         ('qualitaetssicherung', 'Qualitätssicherung'),
         ('schweissen', 'Schweißen'),
-        ('versand', 'Versand'),
-        ('zerspanen', 'Zerspanen'),
+        ('sonst_handarbeitsplaetze', 'Sonst. Handarbeitsplätze'),
+        ('zerspanen_saegen', 'Zerspanen / Sägen'),
+        ('programmieren', 'Programmieren'),
+        ('konstruktion', 'Konstruktion'),
 
         # Weitere Arbeitsplätze hier hinzufügen
     ]
@@ -31,6 +32,8 @@ class Arbeitsanweisung(models.Model):
         ('prozessbeschreibung', 'Prozessbeschreibung'),
         ('arbeitsanweisung', 'Arbeitsanweisung'),
         ('betriebsanweisung', 'Betriebsanweisung'),
+        ('stellenbeschreibung', 'Stellenbeschreibung'),
+        ('formblaetter', 'Formblätter'),
     ]
 
     nummer = models.IntegerField(
@@ -58,6 +61,13 @@ class Arbeitsanweisung(models.Model):
         default='arbeitsanweisung',
         verbose_name="Kategorie",
         help_text="Art der Anweisung"
+    )
+
+    revision = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1)],
+        verbose_name="Revision",
+        help_text="Revisionsstand"
     )
 
     datei_pfad = models.CharField(
@@ -120,6 +130,8 @@ class Arbeitsanweisung(models.Model):
             'prozessbeschreibung': 'info',
             'arbeitsanweisung': 'primary',
             'betriebsanweisung': 'warning',
+            'stellenbeschreibung': 'success',
+            'formblaetter': 'secondary'
         }
         return farben.get(self.kategorie, 'secondary')
 
@@ -131,6 +143,8 @@ class Arbeitsanweisung(models.Model):
             'prozessbeschreibung': 'bi-diagram-3',
             'arbeitsanweisung': 'bi-file-text',
             'betriebsanweisung': 'bi-shield-check',
+            'stellenbeschreibung': 'bi-file-text',
+            'formblaetter': 'bi-file-text',
         }
         return icons.get(self.kategorie, 'bi-file-text')
 

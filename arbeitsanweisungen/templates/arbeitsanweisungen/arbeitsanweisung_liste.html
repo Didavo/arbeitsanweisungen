@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load arbeitsanweisung_tags %}
 
 {% block title %}Arbeitsanweisungen Übersicht{% endblock %}
 
@@ -305,6 +306,81 @@
         padding-left: 1.25rem !important;
         padding-right: 1.25rem !important;
     }
+
+    /* ========== NEU: Tab-Styles ========== */
+    .category-tabs {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .category-tabs .nav-tabs {
+        border-bottom: 2px solid #dee2e6;
+        padding: 0;
+        margin: 0;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .category-tabs .nav-tabs::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .category-tabs .nav-tabs::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 2px;
+    }
+
+    .category-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #6c757d;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+        white-space: nowrap;
+        transition: all 0.3s ease;
+    }
+
+    .category-tabs .nav-link:hover {
+        border-bottom-color: #dee2e6;
+        color: #495057;
+        background: #f8f9fa;
+    }
+
+    .category-tabs .nav-link.active {
+        color: #0d6efd;
+        border-bottom-color: #0d6efd;
+        background: transparent;
+    }
+
+    .category-tabs .badge {
+        margin-left: 0.5rem;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .category-tabs .nav-link.active .badge {
+        background-color: #0d6efd !important;
+        color: white;
+    }
+
+    /* Zeilen per JavaScript verstecken ========== */
+    tr[data-kategorie] {
+        display: table-row;
+    }
+
+    tr[data-kategorie].hidden {
+        display: none;
+    }
+    /* ========================================================== */
+
+
+
+
 </style>
 {% endblock %}
 
@@ -359,10 +435,6 @@
                 {{ form.arbeitsplatz }}
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label"><i class="bi bi-tag"></i> Kategorie</label>
-                    {{ form.kategorie }}
-                </div>
-                <div class="col-md-3">
                     <label class="form-label"><i class="bi bi-sort-down"></i> Sortierung</label>
                     {{ form.sortierung }}
                 </div>
@@ -381,21 +453,44 @@
         </form>
     </div>
 
-    <!-- Ergebnis-Info -->
-    {% if arbeitsanweisungen %}
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="alert alert-info d-flex justify-content-between align-items-center">
-                    <span>
-                        <i class="bi bi-info-circle"></i>
-                        <strong>{{ arbeitsanweisungen.paginator.count }}</strong> Arbeitsanweisung(en) gefunden
-                    </span>
-                    <span class="text-muted">
-                        Seite {{ arbeitsanweisungen.number }} von {{ arbeitsanweisungen.paginator.num_pages }}
-                    </span>
-                </div>
-            </div>
-        </div>
+    <!-- ========== Kategorie-Tabs mit data-kategorie ========== -->
+    <div class="category-tabs">
+        <ul class="nav nav-tabs" role="tablist">
+            <!-- Tab: Alle -->
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" data-kategorie="alle" onclick="filterByCategory('alle')">
+                    <i class="bi bi-collection"></i>
+                    Alle
+                    <span class="badge bg-secondary">{{ kategorie_counts.alle }}</span>
+                </a>
+            </li>
+
+            <!-- Tabs: Kategorien -->
+            {% for key, label in kategorie_choices %}
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" data-kategorie="{{ key }}" onclick="filterByCategory('{{ key }}')">
+                        {% if key == 'prozessbeschreibung' %}
+                            <i class="bi bi-diagram-3"></i>
+                        {% elif key == 'arbeitsanweisung' %}
+                            <i class="bi bi-file-text"></i>
+                        {% elif key == 'betriebsanweisung' %}
+                            <i class="bi bi-shield-check"></i>
+                        {% elif key == 'stellenbeschreibung' %}
+                            <i class="bi bi-person-badge"></i>
+                        {% elif key == 'formblaetter' %}
+                            <i class="bi bi-file-earmark-ruled"></i>
+                        {% else %}
+                            <i class="bi bi-file-text"></i>
+                        {% endif %}
+                        {{ label }}
+                        <span class="badge bg-secondary">{{ kategorie_counts|get_item:key|default:0 }}</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <!-- ================================================================== -->
+
 
         <!-- Tabelle -->
         <div class="card shadow-sm">
@@ -407,7 +502,7 @@
                                 <th style="width: 8%;" class="text-center">
                                     <i class="bi bi-hash"></i> Nummer
                                 </th>
-                                <th style="width: 22%;">
+                                <th style="width: 27%;">
                                     <i class="bi bi-card-text"></i> Name
                                 </th>
                                 <th style="width: 12%;" class="text-center">
@@ -416,8 +511,8 @@
                                 <th style="width: 12%;" class="text-center">
                                     <i class="bi bi-building"></i> Arbeitsplatz
                                 </th>
-                                <th style="width: 13%;" class="text-center">
-                                    <i class="bi bi-calendar"></i> Erstellt am
+                                <th style="width: 8%;" class="text-center">
+                                    <i class="bi bi-calendar"></i> Revision
                                 </th>
                                 <th style="width: 15%;" class="text-center">
                                     <i class="bi bi-gear"></i> Aktionen
@@ -426,7 +521,7 @@
                         </thead>
                         <tbody>
                             {% for anweisung in arbeitsanweisungen %}
-                                <tr onclick="window.location='{% url 'arbeitsanweisung_detail' anweisung.nummer %}';">
+                                <tr data-kategorie="{{ anweisung.kategorie }}" onclick="window.location='{% url 'arbeitsanweisung_detail' anweisung.nummer %}';">
                                     <td class="text-center">
                                         <span class="badge bg-{{ anweisung.kategorie_badge_farbe }} fs-6">{{ anweisung.nummer }}</span>
                                     </td>
@@ -468,7 +563,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-center">
-                                        <small>{{ anweisung.erstellt_am|date:"d.m.Y" }}</small>
+                                        <small>{{ anweisung.revision }}</small>
                                     </td>
                                     <td class="text-center action-icons" onclick="event.stopPropagation();">
                                     <!-- Vorschau (für alle) -->
@@ -556,75 +651,6 @@
             </div>
         </div>
 
-
-
-
-
-        <!-- Pagination (bleibt gleich) -->
-        {% if arbeitsanweisungen.has_other_pages %}
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if arbeitsanweisungen.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Erste Seite">
-                                <i class="bi bi-chevron-double-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ arbeitsanweisungen.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Vorherige Seite">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
-                        </li>
-                        <li class="page-item disabled">
-                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
-                        </li>
-                    {% endif %}
-
-                    {% for num in arbeitsanweisungen.paginator.page_range %}
-                        {% if arbeitsanweisungen.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
-                        {% elif num > arbeitsanweisungen.number|add:'-3' and num < arbeitsanweisungen.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                    {{ num }}
-                                </a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if arbeitsanweisungen.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ arbeitsanweisungen.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Nächste Seite">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ arbeitsanweisungen.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" title="Letzte Seite">
-                                <i class="bi bi-chevron-double-right"></i>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
-                        </li>
-                        <li class="page-item disabled">
-                            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-
-            <div class="text-center text-muted small mt-2">
-                Zeige Eintrag {{ arbeitsanweisungen.start_index }} bis {{ arbeitsanweisungen.end_index }} von {{ arbeitsanweisungen.paginator.count }}
-            </div>
-        {% endif %}
-
     {% else %}
         <div class="alert alert-info text-center py-5" role="alert">
             <i class="bi bi-info-circle display-4 d-block mb-3"></i>
@@ -707,5 +733,63 @@
 
     modal.show();
 }
+</script>
+
+<script>
+    // ========== NEU: JavaScript für Kategorie-Filterung ==========
+    function filterByCategory(category) {
+        // Alle Tabs inaktiv machen
+        document.querySelectorAll('.category-tabs .nav-link').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Aktiven Tab markieren
+        const activeTab = document.querySelector(`.category-tabs .nav-link[data-kategorie="${category}"]`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+
+        // Zeilen filtern
+        const rows = document.querySelectorAll('tr[data-kategorie]');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowCategory = row.getAttribute('data-kategorie');
+
+            if (category === 'alle' || rowCategory === category) {
+                row.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+
+        // Zähler aktualisieren
+        document.getElementById('visible-count').textContent = visibleCount;
+
+        // Wenn nichts sichtbar, Meldung anzeigen
+        const table = document.querySelector('.table');
+        const noResults = document.getElementById('no-results-message');
+
+        if (visibleCount === 0) {
+            if (!noResults) {
+                const alert = document.createElement('div');
+                alert.id = 'no-results-message';
+                alert.className = 'alert alert-warning mt-3';
+                alert.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Keine Arbeitsanweisungen in dieser Kategorie gefunden.';
+                table.parentElement.appendChild(alert);
+            }
+        } else {
+            if (noResults) {
+                noResults.remove();
+            }
+        }
+    }
+
+    // Bei Seitenload: Zeige alle
+    document.addEventListener('DOMContentLoaded', function() {
+        filterByCategory('alle');
+    });
+    // ============================================================
 </script>
 {% endblock %}

@@ -179,6 +179,27 @@
                             </div>
                         </div>
 
+                        <!-- Revision -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.revision.id_for_label }}" class="form-label">
+                                    <i class="bi bi-card-text"></i> {{ form.revision.label }}
+                                    {% if not arbeitsanweisung %}
+                                        <span class="text-muted">(optional)</span>
+                                    {% endif %}
+                                </label>
+                                {{ form.revision }}
+                                {% if form.revision.help_text %}
+                                    <div class="form-text">{{ form.revision.help_text }}</div>
+                                {% endif %}
+                                {% if form.revision.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.revision.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <hr class="my-4">
 
                         <div class="d-flex justify-content-between">

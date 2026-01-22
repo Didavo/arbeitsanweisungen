@@ -35,7 +35,7 @@ class ArbeitsanweisungCreationForm(forms.ModelForm):
 
     class Meta:
         model = Arbeitsanweisung
-        fields = ['nummer', 'name', 'arbeitsplaetze', 'kategorie', 'datei_pfad']
+        fields = ['nummer', 'name', 'arbeitsplaetze', 'kategorie', 'datei_pfad', 'revision']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -50,6 +50,11 @@ class ArbeitsanweisungCreationForm(forms.ModelForm):
             }),
             'arbeitsplaetze': forms.Select(attrs={
                 'class': 'form-control'
+            }),
+            'revision': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'value': '1'
             })
         }
         help_texts = {
@@ -157,7 +162,7 @@ class ArbeitsanweisungChangeForm(forms.ModelForm):
 
     class Meta:
         model = Arbeitsanweisung
-        fields = ['nummer', 'name', 'arbeitsplaetze', 'kategorie']
+        fields = ['nummer', 'name', 'arbeitsplaetze', 'kategorie', 'revision']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control'
@@ -170,6 +175,10 @@ class ArbeitsanweisungChangeForm(forms.ModelForm):
             }),
             'kategorie': forms.Select(attrs={
                 'class': 'form-control'
+            }),
+            'revision': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1'
             }),
         }
 
@@ -271,15 +280,6 @@ class ArbeitsanweisungSearchForm(forms.Form):
         })
     )
 
-    kategorie = forms.ChoiceField(
-        required=False,
-        label='Kategorie',
-        choices=[('', 'Alle Kategorien')] + list(Arbeitsanweisung.KATEGORIE_CHOICES),
-        widget=forms.Select(attrs={
-            'class': 'form-control'
-        })
-    )
-
     sortierung = forms.ChoiceField(
         required=False,
         label='Sortierung',
@@ -299,40 +299,35 @@ class ArbeitsanweisungSearchForm(forms.Form):
 
     def filter_queryset(self, queryset):
         """
-        Hilfsmethode zum Filtern eines QuerySets basierend auf den Form-Daten
+        Filtert QuerySet und gibt IMMER ein QuerySet zurück (nie None!)
         """
 
+        # ========== KORRIGIERT: Prüfung am Anfang ==========
         if not self.is_valid():
-            return queryset
+            return queryset  # Gibt Original-QuerySet zurück, nicht None!
+        # ==================================================
 
         data = self.cleaned_data
 
         # Suche nach Name oder Nummer
         if data.get('suchbegriff'):
-
             queryset = queryset.filter(
                 Q(name__icontains=data['suchbegriff']) |
                 Q(nummer__icontains=data['suchbegriff'])
             )
 
-        # Filter nach Arbeitsplätzen
-
-        # Filter nach Kategorie
-        if data.get('kategorie'):
-            queryset = queryset.filter(kategorie=data['kategorie'])
+        # Filter nach Arbeitsplatz
+        arbeitsplatz = data.get('arbeitsplatz')
+        if arbeitsplatz:
+            queryset = queryset.filter(arbeitsplaetze__contains=[arbeitsplatz])
 
         # Sortierung
         if data.get('sortierung'):
             queryset = queryset.order_by(data['sortierung'])
-        print(queryset)
 
-        # Filterung nach Arbeitsplätzen
-        # MUSS am Ende stehen
-        arbeitsplatz = data.get('arbeitsplatz')
-        if arbeitsplatz:
-            queryset = [obj for obj in queryset if arbeitsplatz in (obj.arbeitsplaetze or [])]
-
-        return queryset
+        # ========== WICHTIG: Gibt IMMER QuerySet zurück ==========
+        return queryset  # Nie None!
+        # =========================================================
 
 
 class ArbeitsanweisungImportForm(forms.Form):

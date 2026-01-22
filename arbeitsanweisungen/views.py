@@ -21,8 +21,48 @@ from .forms import ArbeitsanweisungCreationForm, ArbeitsanweisungChangeForm, Arb
 
 def arbeitsanweisung_liste(request):
     """
-    Listenansicht mit Such- und Filterfunktion
+    Zeigt Liste aller Arbeitsanweisungen mit Filter- und Suchmöglichkeit
     """
+    # Basis QuerySet
+    queryset = Arbeitsanweisung.objects.all()
+
+    # Suchformular
+    form = ArbeitsanweisungSearchForm(request.GET)
+
+    # ========== KORRIGIERT: Sichere Filterung ==========
+    if form.is_valid():
+        filtered = form.filter_queryset(queryset)
+        # Sicherstellen dass wir ein QuerySet haben
+        if filtered is not None:
+            queryset = filtered
+
+    # Kategorie-Zähler berechnen
+    kategorie_counts = {
+        'alle': queryset.count(),
+    }
+
+    for key, label in Arbeitsanweisung.KATEGORIE_CHOICES:
+        kategorie_counts[key] = queryset.filter(kategorie=key).count()
+
+    # Zu Liste konvertieren für Template
+    arbeitsanweisungen = list(queryset)
+    # ==================================================
+
+    context = {
+        'arbeitsanweisungen': arbeitsanweisungen,
+        'form': form,
+        'kategorie_choices': Arbeitsanweisung.KATEGORIE_CHOICES,
+        'kategorie_counts': kategorie_counts,
+    }
+
+    return render(request, 'arbeitsanweisungen/arbeitsanweisung_liste.html', context)
+
+
+
+
+"""
+def arbeitsanweisung_liste(request):
+
     form = ArbeitsanweisungSearchForm(request.GET)
     queryset = Arbeitsanweisung.objects.all()
 
@@ -39,6 +79,8 @@ def arbeitsanweisung_liste(request):
         'arbeitsanweisungen': arbeitsanweisungen,
     }
     return render(request, 'arbeitsanweisungen/arbeitsanweisung_liste.html', context)
+    
+"""
 
 
 @login_required
@@ -182,6 +224,7 @@ def arbeitsanweisung_export_all(request):
                 'name': anweisung.name,
                 'arbeitsplaetze': anweisung.arbeitsplaetze,
                 'kategorie': anweisung.kategorie,
+                'revision': anweisung.revision,
                 'erstellt_am': anweisung.erstellt_am.isoformat(),
                 'datei_name': None,
             }
@@ -332,6 +375,7 @@ def arbeitsanweisung_import(request):
                             anweisung.name = meta['name']
                             anweisung.arbeitsplaetze = meta.get('arbeitsplaetze', [])
                             anweisung.kategorie = meta['kategorie']
+                            anweisung.revision = meta['revision']
                             anweisung.datei_pfad = neuer_datei_pfad
                             anweisung.save()
                             aktualisiert += 1
@@ -339,6 +383,7 @@ def arbeitsanweisung_import(request):
                             anweisung = Arbeitsanweisung.objects.create(
                                 nummer=meta['nummer'],
                                 name=meta['name'],
+                                revision=meta['revision'],
                                 arbeitsplaetze=meta.get('arbeitsplaetze', []),
                                 kategorie=meta['kategorie'],
                                 datei_pfad=neuer_datei_pfad
