@@ -1,4 +1,7 @@
-﻿ALLOWED_HOSTS/CSRF_TRUSTED_ORIGINS - konfigurieren tings/docker-compose
+﻿Reminder: Zeilenumbruch CRLF/UnixLF bedenken, von Linux zu Windows
+
+
+ALLOWED_HOSTS/CSRF_TRUSTED_ORIGINS - konfigurieren tings/docker-compose
 
 
 # Docker Container bauen und starten
@@ -30,3 +33,4 @@ Spalte des Namens vergrößern
 
 Kategorien in Reiter überführen
 - Suche/Filter nach Kategorie entfernen, da immer alles Kategorien zurückgegeben werden sollen
+
